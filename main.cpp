@@ -1,35 +1,42 @@
 #include "mbed.h"
+#include <chrono>
 #include <cstdio>
 
 UnbufferedSerial Teraterm(USBTX,USBRX,9600);
 PwmOut led(PA_5);
 DigitalIn button(PA_0);
-
+DigitalOut buzzer(PA_1);
+Timer timer;
 
 // main() runs in its own thread in the OS
 int main()
 {
     char Led_value[50];
     float LED = 0;
-
+    bool firstpress = false;
+    float firstpresstime = 0, durationbetweenpresstime = 0;
+    timer.start();
     while (true) 
     {
-        if (button == true) 
+        if(!firstpress)
         {
-            for (float i = 0.0; i <=1.0; i += 0.1)
+            firstpress = true;
+            firstpresstime = timer.read_ms();
+            timer.reset();
+
+        }
+        else
+        {
+            firstpress = false;
+            durationbetweenpresstime = timer.read_ms() - firstpresstime;
+            if (durationbetweenpresstime < 500) 
             {
-                led = i;
-                LED = led.read();
-                ThisThread::sleep_for((500ms));
+                buzzer = 1;
+                ThisThread::sleep_for(200ms);
+                buzzer = 0;
+                Teraterm.write("Double-clic détecté\n",22);
             }
         }
-        if(Teraterm.writable()==1)
-        {
-            sprintf(Led_value,"La valeur de la led est = %f", LED);
-            Teraterm.write(Led_value,strlen(Led_value));
-        }
-        
-        Teraterm.write("Hello World\n", 5);
         ThisThread::sleep_for(1000ms);
     }
 }
