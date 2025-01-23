@@ -1,6 +1,7 @@
 #include "mbed.h"
 
 UnbufferedSerial Teraterm(USBTX,USBRX,9600);
+EventFlags Flags;
 
 // main() runs in its own thread in the OS
 int main()
