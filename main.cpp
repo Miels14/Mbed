@@ -7,7 +7,7 @@ EventFlags Flags;
 int main()
 {
     while (true) {
-        Teraterm.write("Hello World\n", 5);
+        Teraterm.write("Hello World\n", 11);
         ThisThread::sleep_for(1000ms);
     }
 }
