@@ -2,18 +2,19 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include "LED.h"
 
-UnbufferedSerial Teraterm(USBTX, USBRX, 9600);
+UnbufferedSerial Teraterm(USBTX, USBRX,9600);
 AnalogIn adc_temperature(PA_3);
-
+Ticker mytick;
 
 // main() runs in its own thread in the OS
 int main() 
 {
+    Teraterm.format(8,SerialBase::None,1);
     float adc_value = 0, voltage = 0, temperature = 0;
     char temperature_value[200];
-
-    Teraterm.write("Connexion a TeraTerm\r",21);
+    Teraterm.write("Connexion a TeraTerm\r\n",21);
    while (true)
    {
        
@@ -26,7 +27,7 @@ int main()
            , temperature,voltage,adc_value);
            Teraterm.write(temperature_value, strlen(temperature_value));
        }
-
+       Led_affichage(temperature);
 
         ThisThread::sleep_for(1000ms);
    }
