@@ -9,8 +9,10 @@ float calcul_ecart_type(int new_buffer_index,float new_temperature_buffer[],floa
 
 UnbufferedSerial Teraterm(USBTX, USBRX, 115200);
 AnalogIn adc_temperature(PA_3);
+AnalogOut dac(PC_0);
 Ticker mytick;
 float adc_value = 0, voltage = 0, temperature = 0, ecart_type_value = 0;
+float val_sin = 0;
 char temperature_buffer_value[200],ecart_type_buffer_value[200];
 const int N = 10;  
 float temperature_buffer[N] = {0}; 
@@ -31,7 +33,7 @@ int main()
         sprintf(ecart_type_buffer_value, "Valeur de l'écart type = %4.2f\n",ecart_type_value);
         Teraterm.write(ecart_type_buffer_value,strlen(ecart_type_buffer_value));
 
-    }, 1000ms);
+    }, 100ms);
 
     while (true)
     {
@@ -47,7 +49,12 @@ int main()
         sprintf(buffer_msg, "temperature_buffer[%d] = %4.2f\n", i, temperature_buffer[i]);
         Teraterm.write(buffer_msg, strlen(buffer_msg));
         }
-        ThisThread::sleep_for(1000ms);  
+        for (int i = 0; i < 10; i++) // test dac
+        {
+            val_sin = sinf(2*3.14*i);
+            dac.write(val_sin);
+        }
+        ThisThread::sleep_for(100ms);  
     }
 }
 
@@ -85,3 +92,4 @@ float calcul_ecart_type(int new_buffer_index,float new_temperature_buffer[],floa
 
     return ecart_type;
 }
+
