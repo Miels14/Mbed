@@ -9,7 +9,8 @@ float calcul_ecart_type(int new_buffer_index,float new_temperature_buffer[],floa
 
 UnbufferedSerial Teraterm(USBTX, USBRX, 115200);
 AnalogIn adc_temperature(PA_3);
-AnalogOut dac(PC_0);
+//AnalogOut dac(PC_0);
+
 Ticker mytick;
 float adc_value = 0, voltage = 0, temperature = 0, ecart_type_value = 0;
 float val_sin = 0;
@@ -43,21 +44,20 @@ int main()
         temperature = calcul_moyenne_glissante(temperature);
         ecart_type_value = calcul_ecart_type(N, temperature_buffer,temperature);
         Led_affichage(temperature);
-        for (int i = 0; i < N; i++) 
+       /* for (int i = 0; i < N; i++) 
         {   
         char buffer_msg[50];
         sprintf(buffer_msg, "temperature_buffer[%d] = %4.2f\n", i, temperature_buffer[i]);
         Teraterm.write(buffer_msg, strlen(buffer_msg));
-        }
-        for (int i = 0; i < 10; i++) // test dac
+        }*/
+     /*   for (int i = 0; i < 10; i++) 
         {
-            val_sin = sinf(2*3.14*i);
+            val_sin = sinf(2.0*3.14*i);
             dac.write(val_sin);
-        }
-        ThisThread::sleep_for(100ms);  
-    }
+        }*/
 }
-
+  
+}
 float calcul_moyenne_glissante(float new_temperature)
 {
     static bool temperature_initialisation = false;
