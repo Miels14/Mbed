@@ -11,7 +11,6 @@ float calcul_ecart_type(int new_buffer_index,float new_temperature_buffer[],floa
 // Initialisation du port série (115200 bauds)
 UnbufferedSerial Teraterm(USBTX, USBRX, 115200);
 AnalogIn adc_temperature(PA_3);
-//AnalogOut dac(PC_0);
 
 // Capteur de température (entrée analogique)
 Ticker mytick;
@@ -31,8 +30,6 @@ int main()
     // Timer pour afficher la température et l'écart type toutes les 100 ms
     mytick.attach([]() 
     {
-       /* sprintf(temperature_buffer_value, "$%4.2f;", temperature); 
-        Teraterm.write(temperature_value, strlen(temperature_value));*/
         sprintf(temperature_buffer_value, "Valeur de la temperature = %3.2f\n", temperature); 
         Teraterm.write(temperature_buffer_value, strlen(temperature_buffer_value));
         sprintf(ecart_type_buffer_value, "Valeur de l'écart type = %4.2f\n",ecart_type_value);
@@ -53,18 +50,6 @@ int main()
 
         // Mise à jour des LEDs selon la température
         Led_affichage(temperature);
-
-       /* for (int i = 0; i < N; i++) 
-        {   
-        char buffer_msg[50];
-        sprintf(buffer_msg, "temperature_buffer[%d] = %4.2f\n", i, temperature_buffer[i]);
-        Teraterm.write(buffer_msg, strlen(buffer_msg));
-        }*/
-     /*   for (int i = 0; i < 10; i++) 
-        {
-            val_sin = sinf(2.0*3.14*i);
-            dac.write(val_sin);
-        }*/
 }
   
 }
