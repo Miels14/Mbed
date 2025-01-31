@@ -22,7 +22,6 @@ const int N = 10;
 float temperature_buffer[N] = {0}; 
 int buffer_index = 0; 
 
-
 // main() runs in its own thread in the OS
 int main()
 {
@@ -54,7 +53,7 @@ int main()
 
         // Mise à jour des LEDs selon la température
         Led_affichage(temperature);
-        
+
        /* for (int i = 0; i < N; i++) 
         {   
         char buffer_msg[50];
