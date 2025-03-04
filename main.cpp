@@ -3,22 +3,21 @@
 #include <cstdio>
 #include <cstring>
 #include "LED.h"
-
-// Déclaration des fonctions de calcul
-float calcul_moyenne_glissante(float new_temperature);
-float calcul_ecart_type(int new_buffer_index,float new_temperature_buffer[],float new_temperature);
+#include "Moyenne.h"
 
 // Initialisation du port série (115200 bauds)
 UnbufferedSerial Teraterm(USBTX, USBRX, 115200);
-AnalogIn adc_temperature(PA_3);
+AnalogIn adc_temperature_1(PA_3);
+AnalogIn adc_temperature_2(PC_0);
 
 // Capteur de température (entrée analogique)
 Ticker mytick;
-float adc_value = 0, voltage = 0, temperature = 0, ecart_type_value = 0;
-float val_sin = 0;
-char temperature_buffer_value[200],ecart_type_buffer_value[200];
+float adc_value_1 = 0, voltage_1 = 0, temperature_1 = 0, ecart_type_value_1 = 0;
+float adc_value_2 = 0, voltage_2 = 0, temperature_2 = 0, ecart_type_value_2 = 0;
+char temperature_buffer_value_1[200],ecart_type_buffer_value_1[200];
+char temperature_buffer_value_2[200],ecart_type_buffer_value_2[200];
 const int N = 10;  
-float temperature_buffer[N] = {0}; 
+float temperature_buffer_1[N] = {0}, temperature_buffer_2[N] = {0}; 
 int buffer_index = 0; 
 
 // main() runs in its own thread in the OS
@@ -30,66 +29,39 @@ int main()
     // Timer pour afficher la température et l'écart type toutes les 100 ms
     mytick.attach([]() 
     {
-        sprintf(temperature_buffer_value, "Valeur de la temperature = %3.2f\n", temperature); 
-        Teraterm.write(temperature_buffer_value, strlen(temperature_buffer_value));
-        sprintf(ecart_type_buffer_value, "Valeur de l'écart type = %4.2f\n",ecart_type_value);
-        Teraterm.write(ecart_type_buffer_value,strlen(ecart_type_buffer_value));
+        // Ecriture sur le teraterm la valeur capteur 1 : 
+        sprintf(temperature_buffer_value_1, "Valeur de la temperature ° 1 = %3.2f\n", temperature_1); 
+        Teraterm.write(temperature_buffer_value_1, strlen(temperature_buffer_value_1));
+       // sprintf(ecart_type_buffer_value_1, "Valeur de l'écart type ° 1 = %4.2f\n",ecart_type_value_1);
+       // Teraterm.write(ecart_type_buffer_value_1,strlen(ecart_type_buffer_value_1));
 
-    }, 100ms);
+
+        // Ecriture sur le teraterm la valeur capteur 2 : 
+        sprintf(temperature_buffer_value_2, "Valeur de la temperature ° 2 = %3.2f\n", temperature_2); 
+        Teraterm.write(temperature_buffer_value_2, strlen(temperature_buffer_value_2));
+        //sprintf(ecart_type_buffer_value_2, "Valeur de l'écart type ° 2 = %4.2f\n",ecart_type_value_2);
+        //Teraterm.write(ecart_type_buffer_value_2,strlen(ecart_type_buffer_value_2));
+
+    }, 1000ms);
 
     while (true)
     {
-        // Lecture du capteur (valeur entre 0 et 1)
-        adc_value = adc_temperature.read();
+        // Lecture du capteur 1 et 2 (valeur entre 0 et 1)
+        adc_value_1 = adc_temperature_1.read();
+        adc_value_2 = adc_temperature_2.read();
         // Conversion en tension (0 à 3.3V)
-        voltage = adc_value * 3.3;
+        voltage_1 = adc_value_1 * 3.3;
+        voltage_2 = adc_value_2 * 3.3;
         // Conversion en °C (ex : 0.2V → 20°C)
-        temperature = voltage * 100; 
-        temperature = calcul_moyenne_glissante(temperature);
-        ecart_type_value = calcul_ecart_type(N, temperature_buffer,temperature);
-
+        temperature_1 = voltage_1 * 100;
+        temperature_2 = voltage_2 * 100; 
+        temperature_1 = calcul_moyenne_glissante(temperature_1);
+        temperature_2 = calcul_moyenne_glissante(temperature_2);
+        ecart_type_value_1 = calcul_ecart_type(N, temperature_buffer_1,temperature_1);
+        ecart_type_value_2 = calcul_ecart_type(N,temperature_buffer_2,temperature_2);
         // Mise à jour des LEDs selon la température
-        Led_affichage(temperature);
-}
+        Led_affichage(temperature_1);
+    }
   
 }
-// Calcul de la moyenne glissante sur N valeurs
-float calcul_moyenne_glissante(float new_temperature)
-{
-    static bool temperature_initialisation = false;
 
-    // Initialisation du buffer avec la première valeur
-    if (temperature_initialisation == false)
-    {
-        for (int i = 0; i < N;i++)
-        {
-            temperature_buffer[i] = new_temperature;
-        }
-        temperature_initialisation = true;
-    }
-
-    // Mise à jour du buffer circulaire
-    temperature_buffer[buffer_index] = new_temperature;
-    buffer_index = (buffer_index + 1) % N;
-
-    // Calcul de la moyenne
-    float sum = 0;
-    for (int i = 0; i < N; i++) {
-        sum += temperature_buffer[i];
-    }
-
-    return sum / N;
-}
-
-// Calcul de l'écart type sur les N dernières valeurs
-float calcul_ecart_type(int new_buffer_index,float new_temperature_buffer[],float new_temperature)
-{
-    float ecart_type = 0;
-    for (int i = 0; i < new_buffer_index; i++) 
-    {
-        ecart_type = ecart_type + powf((new_temperature_buffer[i]-new_temperature),2);
-    }
-    ecart_type = sqrtf(ecart_type/new_buffer_index);
-
-    return ecart_type;
-}
