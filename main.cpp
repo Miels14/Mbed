@@ -9,6 +9,7 @@
 UnbufferedSerial Teraterm(USBTX, USBRX, 115200);
 AnalogIn adc_temperature_1(PA_3);
 AnalogIn adc_temperature_2(PC_0);
+DigitalIn User_B1(PC_13);
 
 // Déclaration des variables 
 Ticker mytick;
@@ -19,6 +20,7 @@ char temperature_buffer_value_2[200],ecart_type_buffer_value_2[200];
 const int N = 100;  
 Capteur_Temperature capteur_1 = {false,new float[N],0};
 Capteur_Temperature capteur_2 = {false,new float[N],0};
+int bouton_cpt = 0;
 
 
 // main
@@ -31,11 +33,8 @@ int main()
     mytick.attach([]() 
     {
         // Ecriture sur le teraterm la valeur capteur 1 : 
-        sprintf(temperature_buffer_value_1, "Valeur de la temperature ° 1 = %3.2f\n", temperature_1); 
         Teraterm.write(temperature_buffer_value_1, strlen(temperature_buffer_value_1));
-
         // Ecriture sur le teraterm la valeur capteur 2 : 
-        sprintf(temperature_buffer_value_2, "Valeur de la temperature ° 2 = %3.2f\n", temperature_2); 
         Teraterm.write(temperature_buffer_value_2, strlen(temperature_buffer_value_2));
     }, 500ms);
 
@@ -64,10 +63,30 @@ int main()
         // Mise à jour des LEDs selon la température
         // Led_affichage(temperature_1);
 
+
+        // Test
+        if (bouton_cpt == 0) {
+          sprintf(temperature_buffer_value_1,"Valeur de la temperature ° 1 = %3.2f\n", temperature_1);
+          sprintf(temperature_buffer_value_2,"Valeur de la temperature ° 2 = %3.2f\n", temperature_2);
+
+          if (User_B1.read() == 1) {
+            delete[] capteur_1.temperature_buffer;
+            delete[] capteur_2.temperature_buffer;
+            bouton_cpt = 1;
+          }
+        } else if (bouton_cpt == 1) {
+          sprintf(temperature_buffer_value_1, "\n");
+          sprintf(temperature_buffer_value_2, "\n");
+
+          if (User_B1.read() == 1) {
+            capteur_1.temperature_buffer = new float[N];
+            capteur_2.temperature_buffer = new float[N];
+            bouton_cpt = 0;
+          }
+        }
+
         ThisThread::sleep_for(100ms);
     }
-    // Libérer la mémoire du tableau
-    delete [] capteur_1.temperature_buffer;
-    delete [] capteur_2.temperature_buffer;
+
     return 0;
 }
