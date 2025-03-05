@@ -1,46 +1,57 @@
 #include "Moyenne.h"
+#include <cstdio>
 #include <math.h>
+#include <stdio.h>
+
+
 
 // Calcul de la moyenne glissante sur N valeurs
-float calcul_moyenne_glissante(float new_temperature)
+float calcul_moyenne_glissante(float new_temperature, const int N, Capteur_Temperature& capteur)
 {
-    const int N = 10;  
-    float temperature_buffer[N] = {0};
-    bool temperature_initialisation = false;
-    int buffer_index = 0; 
-
     // Initialisation du buffer avec la première valeur
-    if (temperature_initialisation == false)
+    if (!capteur.initialisation)
     {
-        for (int i = 0; i < N;i++)
+        for (int i = 0; i < N; i++) 
         {
-            temperature_buffer[i] = new_temperature;
+            capteur.temperature_buffer[i] = new_temperature;
         }
-        temperature_initialisation = true;
+        capteur.initialisation = true;
     }
 
     // Mise à jour du buffer circulaire
-    temperature_buffer[buffer_index] = new_temperature;
-    buffer_index = (buffer_index + 1) % N;
+    capteur.temperature_buffer[capteur.buffer_index] = new_temperature;
+    capteur.buffer_index = (capteur.buffer_index + 1) % N;
 
     // Calcul de la moyenne
     float sum = 0;
     for (int i = 0; i < N; i++) {
-        sum += temperature_buffer[i];
+        sum += capteur.temperature_buffer[i];
     }
 
     return sum / N;
 }
 
+#include <cmath>  // Pour sqrt et pow
+
 // Calcul de l'écart type sur les N dernières valeurs
-float calcul_ecart_type(int new_buffer_index,float new_temperature_buffer[],float new_temperature)
+float calcul_ecart_type(int N, float temperature_buffer[])
 {
     float ecart_type = 0;
-    for (int i = 0; i < new_buffer_index; i++) 
-    {
-        ecart_type = ecart_type + powf((new_temperature_buffer[i]-new_temperature),2);
+    float moyenne = 0;
+
+    // Calcul de la moyenne
+    for (int i = 0; i < N; i++) {
+        moyenne += temperature_buffer[i];
     }
-    ecart_type = sqrtf(ecart_type/new_buffer_index);
+    moyenne /= N;
+
+    // Calcul de la somme des carrés des différences par rapport à la moyenne
+    for (int i = 0; i < N; i++) {
+        ecart_type += powf((temperature_buffer[i] - moyenne), 2);
+    }
+
+    // Calcul de l'écart type
+    ecart_type = sqrtf(ecart_type / N);
 
     return ecart_type;
 }
